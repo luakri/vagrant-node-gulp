@@ -1,0 +1,53 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+VAGRANTFILE_API_VERSION = "2"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+  instance_description = "ubuntu-14.04-amd64"
+
+  # Standard minimal Ubuntu box
+  config.vm.box = instance_description
+  config.vm.box_url = "https://github.com/kraksoft/vagrant-box-ubuntu/releases/download/14.04/ubuntu-14.04-amd64.box"
+
+  # Port 9000 is where Gulp server is available from
+  config.vm.network :forwarded_port, guest: 9000, host: 9000
+  # Port 9001 is required by BrowserSync for UI Port
+  config.vm.network :forwarded_port, guest: 9001, host: 9001
+
+  # VirtualBox specific config
+  config.vm.provider :virtualbox do |vb|
+
+    # Don't boot with headless mode
+    vb.gui = true
+
+    # Give the instance a meaningful name
+    prefix = File.basename(File.expand_path("../../", __FILE__))
+    vb.name = prefix + " - " + instance_description
+
+    vb.customize ["modifyvm", :id, "--cpus", "1", "--memory", 1024]
+
+    vb.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/home/vagrant/project", "1"]
+
+  end
+
+  # projects folder next to this Vagrantfile will be shared with the VM
+  config.vm.synced_folder "../project", "/home/vagrant/project"
+
+  # Install Puppet in the vm
+  config.vm.provision "shell", path: "puppet/install.sh"
+
+  # Install Puppet modules
+  config.vm.provision "shell", path: "puppet/modules.sh"
+
+  # Puppet configuration
+  config.vm.provision :puppet do |puppet|
+    puppet.manifests_path = "puppet/puppet-manifests"
+    puppet.manifest_file  = "manifest.pp"
+    puppet.options = "--verbose --debug"
+  end
+
+  config.vm.post_up_message = "The application is available at http://localhost:9000"
+
+end
