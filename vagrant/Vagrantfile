@@ -26,8 +26,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     prefix = File.basename(File.expand_path("../../", __FILE__))
     vb.name = prefix + " - " + instance_description
 
+    # Set the timesync to 10 seconds. This prevents the VM clock getting massively out of sync.
+    vb.customize ["guestproperty", "set", :id, "/VirtualBox/GuestAdd/VBoxService/--timesync-set-threshold", 10000]
+
+    # Customize the vm setup.
     vb.customize ["modifyvm", :id, "--cpus", "1", "--memory", 1024]
 
+    # Enable Symlinks due to npm.
     vb.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/home/vagrant/project", "1"]
 
   end

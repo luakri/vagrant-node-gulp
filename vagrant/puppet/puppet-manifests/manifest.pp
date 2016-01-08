@@ -9,7 +9,8 @@ node default {
   # Install node.js via https://forge.puppetlabs.com/willdurand/nodejs
   # See that url for installing multiple versions, and more options.
   class { 'nodejs':
-    version => 'v5.3.0' # stable
+    version => 'v5.3.0', # 'stable'
+    make_install => false
   }
 
   # Install ruby.
@@ -33,4 +34,31 @@ node default {
     provider => 'gem',
     require => Package['ruby']
   }
+
+  # Necessary steps in order to run at vm: sudo node or sudo npm
+  # Permissions for default node instalation in order to create Symlinks.
+  file { '/usr/local/node/node-default/bin':
+    ensure          => 'directory',
+    group           => 'puppet',
+    owner           => 'puppet',
+    recurse         => true,
+    require         => Class['nodejs']
+  }
+
+  # Create Symlink in order to run terminal: sudo node
+  file { 'create-node-symlink':
+    ensure          => link,
+    require         => Class['nodejs'],
+    target          => '/usr/local/node/node-default/bin/node',
+    path            => '/usr/local/bin/node'
+  }
+
+  # Create Symlink in order to run terminal: sudo npm
+  file { 'create-npm-symlink':
+    ensure          => link,
+    require         => Class['nodejs'],
+    target          => '/usr/local/node/node-default/bin/npm',
+    path            => '/usr/local/bin/npm'
+  }
+
 }

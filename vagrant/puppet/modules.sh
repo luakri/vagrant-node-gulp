@@ -12,7 +12,7 @@ puppet module install willdurand/nodejs;
 
 echo "Install Puppet Ruby"
 
-puppet module install puppetlabs-ruby
+puppet module install puppetlabs-ruby;
 
 echo "Install Puppet Git"
 
